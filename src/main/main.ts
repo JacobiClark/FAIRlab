@@ -12,6 +12,7 @@ import path from 'path';
 import { app, BrowserWindow, shell, ipcMain } from 'electron';
 import { autoUpdater } from 'electron-updater';
 import log from 'electron-log';
+import { spawn, exec, execFile } from 'child_process';
 import MenuBuilder from './menu';
 import { resolveHtmlPath } from './util';
 
@@ -22,6 +23,53 @@ class AppUpdater {
     autoUpdater.checkForUpdatesAndNotify();
   }
 }
+
+const PY_FLASK_DIST_FOLDER = 'pyflaskdist';
+const PY_FLASK_FOLDER = 'pyflask';
+const PY_FLASK_MODULE = 'app'; // without .py suffix
+let pyFlaskProcess = null;
+
+const port = 5000;
+let pyProc = null;
+
+const getSciprtPath = () => {
+  if (app.isPackaged) {
+    return path.join(process.resourcesPath, PY_FLASK_DIST_FOLDER);
+  }
+  if (process.platform === 'win32') {
+    return path.join(
+      __dirname,
+      '../../',
+      PY_FLASK_FOLDER,
+      `${PY_FLASK_MODULE}.py`
+    );
+  }
+  return path.join(__dirname, '..', PY_FLASK_DIST_FOLDER);
+};
+const createPyProc = () => {
+  const script = getSciprtPath();
+  if (require('fs').existsSync(script)) {
+    console.log('server exists at specified location');
+  } else {
+    console.log('server does not exist at specified location');
+  }
+
+  if (app.isPackaged) {
+    pyFlaskProcess = execFile(script, [port], {
+      stdio: 'ignore',
+    });
+  } else {
+    pyFlaskProcess = spawn('python', [script, port], {
+      stdio: 'ignore',
+    });
+  }
+  console.log(pyFlaskProcess);
+};
+const killPyProc = () => {
+  pyFlaskProcess.kill();
+  pyFlaskProcess = null;
+  pyProc = null;
+};
 
 let mainWindow: BrowserWindow | null = null;
 
@@ -117,6 +165,7 @@ const createWindow = async () => {
  */
 
 app.on('window-all-closed', () => {
+  killPyProc();
   // Respect the OSX convention of having the application in memory even
   // after all windows have been closed
   if (process.platform !== 'darwin') {
@@ -127,6 +176,7 @@ app.on('window-all-closed', () => {
 app
   .whenReady()
   .then(() => {
+    createPyProc();
     createWindow();
     app.on('activate', () => {
       // On macOS it's common to re-create a window in the app when the

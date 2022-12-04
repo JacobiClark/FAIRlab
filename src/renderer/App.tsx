@@ -12,6 +12,7 @@ export default function App() {
       <Layout>
         <Routes>
           <Route path="/" element={<Home />} />
+          <Route path="/s" element={<div>asdf</div>} />
         </Routes>
       </Layout>
     </Router>

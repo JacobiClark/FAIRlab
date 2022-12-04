@@ -1,6 +1,5 @@
 import * as React from 'react';
 import { styled, useTheme, Theme, CSSObject } from '@mui/material/styles';
-import { useLocation } from 'react-router-dom';
 import Box from '@mui/material/Box';
 import MuiDrawer from '@mui/material/Drawer';
 import MuiAppBar, { AppBarProps as MuiAppBarProps } from '@mui/material/AppBar';
@@ -20,6 +19,11 @@ import ListItemText from '@mui/material/ListItemText';
 import InboxIcon from '@mui/icons-material/MoveToInbox';
 import MailIcon from '@mui/icons-material/Mail';
 import Container from '@mui/material/Container';
+import {
+  useLocation,
+  Link as RouterLink,
+  LinkProps as RouterLinkProps,
+} from 'react-router-dom';
 
 const drawerWidth = 240;
 
@@ -55,6 +59,33 @@ const DrawerHeader = styled('div')(({ theme }) => ({
 
 interface AppBarProps extends MuiAppBarProps {
   open?: boolean;
+}
+
+interface ListItemLinkProps {
+  icon: React.ReactElement;
+  primary: string;
+  to: string;
+}
+
+const Link = React.forwardRef<HTMLAnchorElement, RouterLinkProps>(function Link(
+  itemProps,
+  ref
+) {
+  // eslint-disable-next-line react/jsx-props-no-spreading
+  return <RouterLink ref={ref} {...itemProps} role={undefined} />;
+});
+
+function ListItemLink(props: ListItemLinkProps) {
+  const { icon, primary, to } = props;
+
+  return (
+    <li>
+      <ListItem button component={Link} to={to}>
+        {icon ? <ListItemIcon>{icon}</ListItemIcon> : null}
+        <ListItemText primary={primary} />
+      </ListItem>
+    </li>
+  );
 }
 
 const AppBar = styled(MuiAppBar, {
@@ -143,54 +174,44 @@ export default function Layout({ children }: LayoutProps) {
             )}
           </IconButton>
         </DrawerHeader>
-        <Divider />
+        <Divider />{' '}
         <List>
-          {['Inbox', 'Starred', 'Send email', 'Drafts'].map((text, index) => (
-            <ListItem key={text} disablePadding sx={{ display: 'block' }}>
-              <ListItemButton
-                sx={{
-                  minHeight: 48,
-                  justifyContent: open ? 'initial' : 'center',
-                  px: 2.5,
-                }}
-              >
-                <ListItemIcon
-                  sx={{
-                    minWidth: 0,
-                    mr: open ? 3 : 'auto',
-                    justifyContent: 'center',
-                  }}
-                >
-                  {index % 2 === 0 ? <InboxIcon /> : <MailIcon />}
-                </ListItemIcon>
-                <ListItemText primary={text} sx={{ opacity: open ? 1 : 0 }} />
-              </ListItemButton>
-            </ListItem>
+          {[
+            {
+              text: 'About',
+              link: '/',
+            },
+            {
+              text: 'GitHub',
+              link: '/s',
+            },
+          ].map((link) => (
+            <ListItemLink
+              to={link.link}
+              primary={link.text}
+              key={link.text}
+              icon={<InboxIcon />}
+            />
           ))}
         </List>
         <Divider />
         <List>
-          {['All mail', 'Trash', 'Spam'].map((text, index) => (
-            <ListItem key={text} disablePadding sx={{ display: 'block' }}>
-              <ListItemButton
-                sx={{
-                  minHeight: 48,
-                  justifyContent: open ? 'initial' : 'center',
-                  px: 2.5,
-                }}
-              >
-                <ListItemIcon
-                  sx={{
-                    minWidth: 0,
-                    mr: open ? 3 : 'auto',
-                    justifyContent: 'center',
-                  }}
-                >
-                  {index % 2 === 0 ? <InboxIcon /> : <MailIcon />}
-                </ListItemIcon>
-                <ListItemText primary={text} sx={{ opacity: open ? 1 : 0 }} />
-              </ListItemButton>
-            </ListItem>
+          {[
+            {
+              text: 'About',
+              link: '/',
+            },
+            {
+              text: 'GitHub',
+              link: '/s',
+            },
+          ].map((link) => (
+            <ListItemLink
+              to={link.link}
+              primary={link.text}
+              key={link.text}
+              icon={<InboxIcon />}
+            />
           ))}
         </List>
       </Drawer>
